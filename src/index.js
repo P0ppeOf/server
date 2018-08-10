@@ -14,6 +14,7 @@ app.use((req, res, next) => {
 setTimeout(next, 1000)
 });  
 
+app.use(express.static('public'))
 
 app.get('/Ping', (req, res) => {
     res
