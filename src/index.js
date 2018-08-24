@@ -1,14 +1,13 @@
 //const express = require('express') equivaut à (es5 vers es6)
 import express from 'express'
 import fs from 'fs'
+import { isEmpty } from './test'
 //body pars syntaxe ES6
 import bodyParser from 'body-parser'
 //body pars syntaxe ES5
 //var bodyParser = require('body-parser');
 
 const app = express()
-
-//app.use(bodyParser.urlencoded({ extended: false }));
 
 var monJson = JSON.parse(fs.readFileSync('src/movies.json', 'utf8'));
 
@@ -69,27 +68,45 @@ app.get('/Movies/:Id', (req, res, next) => {
 
  //gerer la requete post qui vient du front
  app.post('/form',function(request,response){
+     //1
+     //equivaut à const {title, imgURL, synopsis} = request.body
     const titre = request.body.titre
     const imgURL=request.body.imgURL
     const synopsis=request.body.synopsis
-    
-    let max =0;
-     for (let i = 0; i < monJson.length; i++) 
-    {   
-    
-        let idPutain = Number.parseInt(monJson[i].id)
-        if (idPutain > max)
-        {max = idPutain}
-        
-    } 
-    max++
+    const id = Date.now()
+
+    function validateField(str, msg) {
+       if(!str || 0 === str.length ||  /^\s*$/.test(str)) {
+           errors.push(msg)
+       }
+    }
+
+    const errors = []
+    validateField(titre, 'Titre obligatoire')
+    validateField(imgURL, "Url obligatoire")
+    validateField(synopsis, 'Synopsis obligatoire')
+    if(errors.length >0) return response.status(400).send(errors)
+
 
     const newMovie = {
-    'id': max.toString(), 
+    'id': id.toString(), 
     'title': titre, 
     'url': imgURL, 
     'synopsys': synopsis
     }
+/* J'aurais pu (en1) appeler mes variables avec les noms proprs au JSON ->
+id, title, url et synopsis, et juste faire
+ const newMovie = {
+     id,
+     title,
+     url,
+     synopsys
+ } 
+ vu que le nom est le même, on economise un peu de texte
+ id à la place de 'id' : id
+ Et j'aurai pu faire id = max.toString et ecrire directement id dans mon newMovie
+ */
+
      
     monJson.push(newMovie)
     fs.writeFile("src/movies.json", JSON.stringify(monJson), (err) => {
@@ -99,7 +116,8 @@ app.get('/Movies/:Id', (req, res, next) => {
         };
         console.log("File has been created");
     });
-    response.send()
+
+    response.status(200)
     }); 
 
 
